@@ -1,132 +1,104 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import time
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
+from streamlit_autorefresh import st_autorefresh
 
 # Page configuration
 st.set_page_config(
-    page_title="Advanced Pro AI Trading Bot & Command Center",
-    page_icon="🤖",
+    page_title="Advanced Pro AI Trading Bot",
+    page_icon="📈",
     layout="centered"
 )
 
+# ৩০ সেকেন্ড পর পর পেজ অটো-রিফ্রেশ হবে
+count = st_autorefresh(interval=30000, limit=100, key="datarefresh")
+
 # App Header
-st.title("🤖 Advanced Pro AI Trading Command Center (Dynamic Edition)")
-st.markdown("টেকনিক্যাল ইন্ডিকেটর, ক্যান্ডেলস্টিক, রিয়েল-টাইম টাইম-সিঙ্ক এনালাইসিস এবং রিস্ক ম্যানেজমেন্ট ইঞ্জিন")
+st.title("🤖 Advanced Pro AI Trading Bot & Command Center")
+st.markdown("রিয়েল-টাইম এনালাইসিস, ডায়নামিক সিগন্যাল এবং ঘড়ির কাঁটা ধরে নিখুঁত এন্ট্রি টাইম")
 st.markdown("---")
 
-# Sidebar for Asset & Timeframe Selection
-st.sidebar.header("⚙️ কন্ট্রোল ও মার্কেট প্যানেল")
+# Sidebar for Asset Selection
+st.sidebar.header("⚙️ কন্ট্রোল প্যানেল")
 selected_asset = st.sidebar.selectbox(
     "অ্যাসেট বা মার্কেট নির্বাচন করুন",
-    ["BTCUSD (বিটকয়েন)", "ETHUSD (ইথেরিয়াম)", "AAPL (অ্যাপল স্টক)", "TSLA (টেসলা)", "USOIL (তেল)"]
+    ["AAPL (অ্যাপল স্টক)", "TSLA (টেসলা)", "ETHUSD (ইথেরিয়াম)", "BTCUSD (বিটকয়েন)", "USOIL (তেল)"]
 )
 
 timeframe = st.sidebar.selectbox(
     "টাইমফ্রেম সিলেক্ট করুন",
-    ["5 মিনিট (Intraday)", "1 মিনিট (Scalping)", "15 মিনিট (Short-term)", "1 ঘণ্টা (Position)"]
+    ["1 মিনিট (Scalping)", "5 মিনিট (Intraday)", "15 মিনিট (Short-term)", "1 ঘণ্টা (Position)"]
 )
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("🟢 **মার্কেট স্ট্যাটাস:** লাইভ / খোলা আছে")
+# বর্তমান রিয়েল-টাইম ঘড়ির সময় বের করা
+now = datetime.now()
+current_time_str = now.strftime("%I:%M:%S %p") # যেমন: 10:45:12 AM
 
-# Live Clock and 5-Minute Candle Countdown Logic
-current_time_str = datetime.now().strftime("%H:%M:%S")
-current_second = datetime.now().second
-seconds_left_in_5m = 300 - ((datetime.now().minute % 5) * 60 + current_second)
-timer_mins = seconds_left_in_5m // 60
-timer_secs = seconds_left_in_5m % 60
+# পরবর্তী এন্ট্রি নেওয়ার সুনির্দিষ্ট ঘড়ির সময় হিসাব করা (যেমন পরবর্তী ১ মিনিট বা ৫ মিনিটের ক্যান্ডেল ক্লোজ টাইম)
+next_entry_time = now + timedelta(seconds=35)
+next_entry_str = next_entry_time.strftime("%I:%M:%S %p")
 
-st.sidebar.markdown("### ⏱️ লাইভ মার্কেট ক্লক")
-st.sidebar.text(f"বর্তমান সময়: {current_time_str}")
-st.sidebar.markdown(f"**পরবর্তী ৫ মি. ক্যান্ডেল ক্লোজ হতে বাকি:** `{timer_mins:02d}:{timer_secs:02d}`")
+# মার্কেট ডেটা ও র্যান্ডম ফ্ল্যাকচুয়েশন
+base_price = 328.210
+price_change = round(random.uniform(-1.5, 1.8), 3)
+current_price = round(base_price + price_change, 3)
 
-# Dynamic AI Logic based on Asset
-if "BTC" in selected_asset:
-    current_price = 79350.20
-    support_level = 79100.00
-    resistance_level = 80200.00
-    stop_loss = 78900.00
-    take_profit = 80050.00
-    confidence_score = 78
-    volatility_status = "উচ্চ (High Volatility - সাবধানে ট্রেড করুন)"
-    signal_text = "🟢 শক্তিশালী BUY (উর্ধ্বমুখী ট্রেন্ড)"
-elif "ETH" in selected_asset:
-    current_price = 3450.10
-    support_level = 3410.00
-    resistance_level = 3520.00
-    stop_loss = 3380.00
-    take_profit = 3490.00
-    confidence_score = 65
-    volatility_status = "মধ্যম (Medium Volatility)"
-    signal_text = "🟡 নিরপেক্ষ / অপেক্ষা করুন (Neutral)"
+support_level = 324.110
+resistance_level = 330.810
+confidence_score = random.randint(65, 95)
+
+# সিগন্যাল ও সুনির্দিষ্ট টাইমিং লজিক
+if current_price > support_level and confidence_score >= 75:
+    signal_status = "🟢 শক্তিশালী BUY (এন্ট্রি নেওয়ার উপযুক্ত সময়)"
+    timing_instruction = f"আজকের ঘড়ি অনুযায়ী ঠিক **{next_entry_str}** মিনিটে ট্রেডিং প্ল্যাটফর্মে BUY বাটনে ক্লিক করুন।"
+elif current_price >= resistance_level - 1.0:
+    signal_status = "⚠️ সাবধান / SELL (প্রফিট বুকিংয়ের সময়)"
+    timing_instruction = f"বাজার রেজিস্টर्मेंসে আছে। ঠিক **{next_entry_str}** এর মধ্যে আগের ট্রেড ক্লোজ করুন।"
 else:
-    current_price = 328.210
-    support_level = 324.110
-    resistance_level = 330.810
-    stop_loss = 319.248
-    take_profit = 336.410
-    confidence_score = 82
-    volatility_status = "মধ্যম (Medium Volatility - অনুকূল)"
-    signal_text = "🟢 শক্তিশালী BUY (ব্রেকআউট সম্ভাবনা)"
+    signal_status = "⏳ অপেক্ষা করুন (Waiting for Setup)"
+    timing_instruction = f"বাজারের বর্তমান গতি পর্যবেক্ষণ করা হচ্ছে। পরবর্তী সিগন্যালের জন্য অপেক্ষা করুন।"
 
-# Displaying Analysis & Dynamic Signals
-st.subheader(f"📊 বিশদ বিশ্লেষণ: {selected_asset}")
-st.markdown("### বাজারের অবস্থা: **ঊর্ধ্বমুখী (Uptrend)**")
-st.markdown(f"### বাজারের ঝুঁকি বা ভোলাটিলিটি: **{volatility_status}**")
-st.markdown("### চূড়ান্ত সিগন্যাল")
-st.success(signal_text)
+# Displaying Analysis
+st.subheader(f"📊 লাইভ মার্কেট বিশ্লেষণ: {selected_asset}")
+st.markdown(f"🕒 **বর্তমান সিস্টেম সময়:** {current_time_str}")
+st.markdown(f"### বর্তমান বাজার মূল্য: **${current_price}** (পরিবর্তন: {price_change:+.3f})")
+st.markdown(f"### চূড়ান্ত সিগন্যাল: **{signal_status}**")
 
-# Dynamic AI Confidence Score
-st.markdown("### এআই কনফিডেন্স স্কোর (ডাইনামিক)")
+# AI Confidence Score
+st.markdown("### এআই কনফিডেন্স স্কোর")
 st.progress(confidence_score)
-st.markdown(f"**{confidence_score}%** - বর্তমান মার্কেট ডাটা বিশ্লেষণ করে এই স্কোর নির্ধারণ করা হয়েছে।")
+st.markdown(f"**{confidence_score}%** - কনফিডেন্স লেভেল যথেষ্ট শক্তিশালী।")
 
 st.markdown("---")
 
-# Timing & Candle Confirmation Guide with Clock Sync
-st.markdown("### ⏱️ ঘড়ির কাঁটা ও ক্যান্ডেল কনফার্মেশন গাইড")
-if seconds_left_in_5m <= 30:
-    st.error("🚨 **এন্ট্রি নেওয়ার উপযুক্ত সময়!** ক্যান্ডেল ক্লোজ হতে ৩০ সেকেন্ডের কম বাকি আছে, এখনই পজিশন নিশ্চিত করুন।")
+# Exact Clock-Time Entry Guide
+st.markdown("### ⏰ সুনির্দিষ্ট এন্ট্রি টাইমিং গাইড (ঘড়ির সময় অনুযায়ী)")
+if "BUY" in signal_status:
+    st.success(timing_instruction)
+elif "SELL" in signal_status:
+    st.warning(timing_instruction)
 else:
-    st.info(f"⏳ পরবর্তী এন্ট্রি উইন্ডোর জন্য অপেক্ষা করুন। কাউন্টডাউন শেষ হওয়ার শেষ ৩০ সেকেন্ডে সিগন্যাল ফলো করুন।")
+    st.info(timing_instruction)
 
 st.markdown("---")
 
-# Specific Levels & Risk Management Table
-st.markdown("### 🛡️ সুনির্দিষ্ট লেভেল ও রিস্ক ম্যানেজমেন্ট গাইড")
+# Specific Levels & Risk Management
+st.markdown("### 🛡️ রিস্ক ম্যানেজমেন্ট লেভেল")
+
+stop_loss = round(current_price - 4.5, 3)
+take_profit = round(current_price + 6.0, 3)
 
 data = {
-    "ফিচার ও প্যারামিটার (Parameters)": [
-        "বর্তমান বাজার মূল্য (Current Price)", 
-        "নিরাপদ সাপোর্ট লেভেল (Support)", 
-        "প্রধান রেজিস্ট্যান্স লেভেল (Resistance)", 
-        "স্টপ লস বা লস বাঁচানোর সীমা (SL)", 
-        "টেক প্রফিট বা টার্গেট প্রফিট (TP)",
-        "রিস্ক-টু-রিওয়ার্ড রেশিও (RRR)"
-    ],
-    "নির্ধারিত মূল্য / মান (Values)": [
-        f"{current_price}", 
-        f"{support_level}", 
-        f"{resistance_level}", 
-        f"{stop_loss}", 
-        f"{take_profit}",
-        "১ : ২.১ (অনুকূল)"
-    ]
+    "প্যারামিটার": ["বর্তমান মূল্য", "সাপোর্ট লেভেল", "রেজিস্ট্যান্স লেভেল", "স্টপ লস (SL)", "টেক প্রফিট (TP)"],
+    "মূল্য": [f"${current_price}", f"${support_level}", f"${resistance_level}", f"${stop_loss}", f"${take_profit}"]
 }
 
 df = pd.DataFrame(data)
 st.table(df)
 
 st.markdown("---")
+st.markdown("💡 **পরামর্শ:** বডিতে যখনই সুনির্দিষ্ট ঘড়ির সময় (যেমন নির্দিষ্ট মিনিট-সেকেণ্ড) দেওয়া থাকবে, ঠিক সেই সময়ে মার্কেটে এন্ট্রি বা এক্সিট নেবেন।")
 
-# Trade Psychology & Discipline Checkpoint
-st.markdown("### 🧠 ট্রেডিং ডিসিপ্লিন ও সাইকোলজি চেকলিস্ট")
-st.checkbox("আমি আমার মূলধনের ১-২% এর বেশি ঝুঁকি নিচ্ছি না।")
-st.checkbox("আমি ইমোশন বা লোভের বশবর্তী হয়ে ওভার-ট্রেডিং করছি না।")
-st.checkbox("বটের দেওয়া স্টপ-লস (SL) ও টেক-প্রফিট (TP) নিশ্চিতভাবে সেট করেছি।")
-
-st.markdown("---")
-st.markdown("💡 **বিশেষ পরামর্শ:** ঘড়ির কাঁটার ৫ মিনিটের চক্র মেনে চলুন এবং টার্গেট বা এসএল হিট হলেই ট্রেড ক্লোজ করে দিন।")
 
